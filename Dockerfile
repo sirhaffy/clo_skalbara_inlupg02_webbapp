@@ -1,4 +1,4 @@
-# Multi-stage build for React (Vite) + Node.js app
+# React app with Nginx serving
 FROM node:18-alpine AS builder
 
 # Enable corepack for yarn
@@ -19,15 +19,30 @@ COPY . .
 # Build React app with Vite
 RUN yarn build
 
-# Production stage
-FROM node:18-alpine AS production
+# Production stage with nginx
+FROM nginx:alpine AS production
 
 # Add labels for Watchtower
 LABEL com.centurylinklabs.watchtower.enable="true"
 LABEL org.opencontainers.image.title="CLO FreSva Webbapp"
-LABEL org.opencontainers.image.description="Docker Swarm Test Application"
+LABEL org.opencontainers.image.description="Docker Swarm React Frontend"
 
-# Enable corepack for yarn
+# Copy built React app to nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration if needed
+# COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Add hostname injection script
+RUN echo '#!/bin/sh' > /docker-entrypoint.d/inject-hostname.sh && \
+    echo 'echo "window.CONTAINER_HOSTNAME=\"$(hostname)\";" > /usr/share/nginx/html/hostname.js' >> /docker-entrypoint.d/inject-hostname.sh && \
+    chmod +x /docker-entrypoint.d/inject-hostname.sh
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
 RUN corepack enable
 
 # Create app directory

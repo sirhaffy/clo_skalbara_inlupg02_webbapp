@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: yarn install --frozen-lockfile
 
-    - name: Build application
+    - name: Build React application
       run: yarn build
 
     - name: Test Docker build
@@ -80,8 +80,8 @@ jobs:
           ${{ env.DOCKER_IMAGE }}:latest
           ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}
         labels: |
-          org.opencontainers.image.title=CLO FreSva Webbapp
-          org.opencontainers.image.description=Docker Swarm Test Application
+          org.opencontainers.image.title=CLO FreSva React App
+          org.opencontainers.image.description=Docker Swarm React Frontend
           org.opencontainers.image.version=${{ steps.version.outputs.version }}
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
@@ -103,4 +103,4 @@ jobs:
         echo "- **Image:** ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Watchtower:** Will auto-update containers within 5 minutes" >> $GITHUB_STEP_SUMMARY
-        echo "- **Health Check:** Monitor at https://your-domain.com/api/health" >> $GITHUB_STEP_SUMMARY
+        echo "- **Frontend:** React app served via Nginx" >> $GITHUB_STEP_SUMMARY
