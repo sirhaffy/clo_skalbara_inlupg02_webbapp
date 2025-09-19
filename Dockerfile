@@ -24,7 +24,7 @@ FROM node:18-alpine AS production
 
 # Add labels for Watchtower
 LABEL com.centurylinklabs.watchtower.enable="true"
-LABEL org.opencontainers.image.title="CLO FreSva App"
+LABEL org.opencontainers.image.title="CLO FreSva Webbapp"
 LABEL org.opencontainers.image.description="Docker Swarm Test Application"
 
 # Enable corepack for yarn

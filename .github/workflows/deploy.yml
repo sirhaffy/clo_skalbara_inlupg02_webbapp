@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 env:
-  DOCKER_IMAGE: sirhaffy/clo-fresva-app
+  DOCKER_IMAGE: haffy/clo-fresva-app
   AWS_REGION: eu-north-1
 
 jobs:
@@ -80,7 +80,7 @@ jobs:
           ${{ env.DOCKER_IMAGE }}:latest
           ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}
         labels: |
-          org.opencontainers.image.title=CLO FreSva App
+          org.opencontainers.image.title=CLO FreSva Webbapp
           org.opencontainers.image.description=Docker Swarm Test Application
           org.opencontainers.image.version=${{ steps.version.outputs.version }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -99,7 +99,7 @@ jobs:
 
     - name: Deployment summary
       run: |
-        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
         echo "- **Image:** ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Watchtower:** Will auto-update containers within 5 minutes" >> $GITHUB_STEP_SUMMARY
