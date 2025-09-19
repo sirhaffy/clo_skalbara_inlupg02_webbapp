@@ -6,37 +6,12 @@ on:
     paths-ignore:
       - 'README.md'
       - 'docs/**'
-  pull_request:
-    branches: [ main ]
 
 env:
   DOCKER_IMAGE: haffy/clo-fresva-app
   AWS_REGION: eu-north-1
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'yarn'
-
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
-
-    - name: Build React application
-      run: yarn build
-
-    - name: Test Docker build
-      run: docker build -t test-image .
-
   build-and-push:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'

@@ -40,7 +40,7 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>🐳 Docker Swarm Load Balancer</h1>
+          <h1>🐳 Docker Swarm - Webbapp</h1>
           <div className="status-badge">✅ Aktiv</div>
         </header>
 

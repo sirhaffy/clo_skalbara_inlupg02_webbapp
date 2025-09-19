@@ -33,51 +33,13 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration if needed
 # COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose port 80
-EXPOSE 80
-
 # Add hostname injection script
 RUN echo '#!/bin/sh' > /docker-entrypoint.d/inject-hostname.sh && \
     echo 'echo "window.CONTAINER_HOSTNAME=\"$(hostname)\";" > /usr/share/nginx/html/hostname.js' >> /docker-entrypoint.d/inject-hostname.sh && \
     chmod +x /docker-entrypoint.d/inject-hostname.sh
 
+# Expose port 80
+EXPOSE 80
+
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-RUN corepack enable
-
-# Create app directory
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Copy package files
-COPY package.json yarn.lock* ./
-
-# Install only production dependencies
-RUN yarn install --production --frozen-lockfile && yarn cache clean
-
-# Copy built React app and server
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server ./server
-
-# Change ownership to nodejs user
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "const http = require('http'); \
-    const options = { hostname: 'localhost', port: 3000, path: '/api/health', timeout: 2000 }; \
-    const req = http.request(options, (res) => { \
-      process.exit(res.statusCode === 200 ? 0 : 1); \
-    }); \
-    req.on('error', () => process.exit(1)); \
-    req.end();"
-
-# Start the application
-CMD ["yarn", "start"]
