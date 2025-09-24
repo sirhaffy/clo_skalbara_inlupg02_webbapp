@@ -30,8 +30,8 @@ LABEL org.opencontainers.image.description="Docker Swarm React Frontend"
 # Copy built React app to nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration if needed
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Add hostname injection script
 RUN echo '#!/bin/sh' > /docker-entrypoint.d/inject-hostname.sh && \
