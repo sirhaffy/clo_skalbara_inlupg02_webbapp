@@ -37,7 +37,7 @@ WORKDIR /app
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy backend files
-COPY app.js package.json ./
+COPY app.js package.json yarn.lock ./
 
 # Install only production dependencies for backend
 RUN yarn install --production --frozen-lockfile
