@@ -48,13 +48,13 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Create data directory for SQLite with proper permissions
 RUN mkdir -p /app/data && chown -R node:node /app/data
 
+# Create nginx and script directories
+RUN mkdir -p /docker-entrypoint.d /var/log/nginx /var/lib/nginx/tmp
+
 # Add hostname injection script
 RUN echo '#!/bin/sh' > /docker-entrypoint.d/inject-hostname.sh && \
     echo 'echo "window.CONTAINER_HOSTNAME=\"$(hostname)\";" > /usr/share/nginx/html/hostname.js' >> /docker-entrypoint.d/inject-hostname.sh && \
     chmod +x /docker-entrypoint.d/inject-hostname.sh
-
-# Create nginx directories
-RUN mkdir -p /docker-entrypoint.d /var/log/nginx /var/lib/nginx/tmp
 
 # Create startup script
 RUN echo '#!/bin/sh' > /start.sh && \
