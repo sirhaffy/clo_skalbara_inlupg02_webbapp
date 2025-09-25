@@ -189,7 +189,7 @@ function App() {
 
         {/* Database Statistics Section */}
         <div className="database-section">
-          <h2>📊 Databas & Load Balancing</h2>
+          <h2>📊 Meddelanden</h2>
 
           <div className="db-stats-grid">
             <div className="stat-card">
@@ -262,6 +262,15 @@ function App() {
             </div>
           </div>
 
+          <div className="actions">
+            <button
+              className="refresh-btn"
+              onClick={() => Promise.all([fetchServerInfo(), fetchDbStats()])}
+            >
+              🔄 Uppdatera All Info
+            </button>
+          </div>
+
           {/* Recent Messages */}
           <div className="messages-display">
             <h3>📝 Senaste Meddelanden</h3>
@@ -271,6 +280,7 @@ function App() {
               ) : (
                 dbStats.recentMessages.map((msg, index) => (
                   <div key={msg.id || index} className="message-item">
+
                     <div className="message-header">
                       <strong>{msg.author}</strong>
                       <span className="message-meta">
@@ -278,21 +288,31 @@ function App() {
                         <span className="processed-by"> via {msg.hostname}</span>
                       </span>
                     </div>
+
                     <p className="message-content">{msg.message}</p>
+
+                    <button
+                      className="delete-btn"
+                      onClick={async () => {
+                        if (!window.confirm('Are you sure you want to delete this message?')) return
+                        try {
+                          const response = await fetch(`/api/messages/${msg.id}`, {
+                            method: 'DELETE'
+                          })
+                          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+                          await fetchDbStats()
+                        } catch (err) {
+                          setError('Failed to delete message: ' + err.message)
+                        }
+                      }}
+                    >
+                      🗑️ Delete
+                    </button>
                   </div>
                 ))
               )}
             </div>
           </div>
-        </div>
-
-        <div className="actions">
-          <button
-            className="refresh-btn"
-            onClick={() => Promise.all([fetchServerInfo(), fetchDbStats()])}
-          >
-            🔄 Uppdatera All Info
-          </button>
         </div>
 
         <div className="description">
