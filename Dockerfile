@@ -38,7 +38,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy backend files
 COPY app.js package.json ./
-COPY node_modules ./node_modules
+
+# Install only production dependencies for backend
+RUN yarn install --production --frozen-lockfile
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
