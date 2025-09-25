@@ -1,6 +1,11 @@
 # Multi-stage build for React app with Express backend
 FROM node:18-alpine AS builder
 
+# Build arguments for version info
+ARG BUILD_DATE
+ARG VERSION=2.1
+ARG COMMIT_SHA=unknown
+
 # Enable corepack for yarn
 RUN corepack enable
 
@@ -15,6 +20,9 @@ RUN yarn install --frozen-lockfile
 
 # Copy source code
 COPY . .
+
+# Create build info file
+RUN echo "{\"version\":\"${VERSION:-2.1}\",\"buildDate\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"commitSha\":\"${COMMIT_SHA:-unknown}\"}" > public/build-info.json
 
 # Build React app with Vite
 RUN yarn build

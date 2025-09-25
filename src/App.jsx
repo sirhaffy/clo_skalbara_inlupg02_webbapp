@@ -12,13 +12,10 @@ function App() {
     nodeId: 'Laddar...',
     serviceName: 'Laddar...',
     timestamp: 'Laddar...',
-    environment: 'Laddar...',
-    platform: 'Laddar...',
-    refreshCount: 0
+    platform: 'Laddar...'
   })
 
   const [dbStats, setDbStats] = useState({
-    totalVisits: 0,
     visitsByContainer: [],
     recentMessages: [],
     containerStats: []
@@ -47,9 +44,7 @@ function App() {
         nodeId: data.nodeId || 'Data saknas',
         serviceName: data.serviceName || 'Data saknas',
         timestamp: new Date(data.timestamp).toLocaleString('sv-SE') || 'Data saknas',
-        environment: data.environment || 'unknown',
-        platform: data.platform || 'Data saknas',
-        refreshCount: prev.refreshCount + 1
+        platform: data.platform || 'Data saknas'
       }))
 
       setLoading(false)
@@ -66,9 +61,7 @@ function App() {
         nodeId: 'Data saknas (API-fel)',
         serviceName: 'Data saknas (API-fel)',
         timestamp: new Date().toLocaleString('sv-SE'),
-        environment: 'development',
-        platform: 'browser',
-        refreshCount: prev.refreshCount + 1
+        platform: 'browser'
       }))
 
       setLoading(false)
@@ -82,7 +75,6 @@ function App() {
 
       const data = await response.json()
       setDbStats({
-        totalVisits: data.total_visits || 0,
         visitsByContainer: data.visits_by_container || [],
         recentMessages: data.recent_messages || [],
         containerStats: data.container_stats || []
@@ -139,8 +131,8 @@ function App() {
 
     fetchAllData()
 
-    // Auto-refresh var 5:e sekund för att visa load balancing
-    const interval = setInterval(fetchAllData, 5000)
+    // Auto-refresh var 3:e sekund för bättre meddelande-synkronisering
+    const interval = setInterval(fetchAllData, 3000)
     return () => clearInterval(interval)
   }, [])
 
@@ -150,9 +142,9 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>🐳 Docker Swarm - Webbapp</h1>
+          <h1>🐳 Docker Swarm - Webbapp v2.1</h1>
           <div className={`status-badge ${isProduction ? 'production' : 'development'}`}>
-            {isProduction ? '🚀 Production' : '🔧 Development'}
+            {isProduction ? '🚀 Production - Rolling Updates Active!' : '🔧 Development'}
           </div>
           {error && <div className="error-badge">⚠️ API Error: {error}</div>}
         </header>
@@ -177,7 +169,7 @@ function App() {
           </div>
 
           <div className="info-card">
-            <div className="card-icon">�</div>
+            <div className="card-icon">🐳</div>
             <h3>Docker Node</h3>
             <p className="info-value">{serverInfo.nodeName}</p>
           </div>
@@ -189,21 +181,9 @@ function App() {
           </div>
 
           <div className="info-card">
-            <div className="card-icon">�🕒</div>
+            <div className="card-icon">🕒</div>
             <h3>Senaste Uppdatering</h3>
             <p className="info-value">{serverInfo.timestamp}</p>
-          </div>
-
-          <div className="info-card">
-            <div className="card-icon">🔄</div>
-            <h3>Refresh Count</h3>
-            <p className="info-value">{serverInfo.refreshCount}</p>
-          </div>
-
-          <div className="info-card">
-            <div className="card-icon">🌐</div>
-            <h3>Environment</h3>
-            <p className="info-value">{serverInfo.environment}</p>
           </div>
         </div>
 
@@ -212,12 +192,6 @@ function App() {
           <h2>📊 Databas & Load Balancing</h2>
 
           <div className="db-stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon">👥</div>
-              <h4>Totala Besök</h4>
-              <p className="stat-value">{dbStats.totalVisits}</p>
-            </div>
-
             <div className="stat-card">
               <div className="stat-icon">⚖️</div>
               <h4>Load Distribution</h4>
@@ -234,35 +208,58 @@ function App() {
 
           {/* Message System */}
           <div className="message-section">
-            <h3>💬 Skicka Meddelande</h3>
-            <form onSubmit={submitMessage} className="message-form">
-              <div className="form-row">
-                <input
-                  type="text"
-                  placeholder="Ditt namn (frivilligt)"
-                  value={messageAuthor}
-                  onChange={(e) => setMessageAuthor(e.target.value)}
-                  className="author-input"
-                />
-              </div>
-              <div className="form-row">
-                <textarea
-                  placeholder="Skriv ditt meddelande här..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  rows="3"
-                  className="message-input"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={submitting || !newMessage.trim()}
-                className="submit-btn"
-              >
-                {submitting ? '📤 Skickar...' : '📤 Skicka Meddelande'}
-              </button>
-            </form>
+            <div className="message-section-header">
+              <h3>💬 Skicka Meddelande</h3>
+              <p className="sync-info">Meddelanden synkas i realtid mellan alla containers</p>
+            </div>
+            <div className="message-form-container">
+              <form onSubmit={submitMessage} className="message-form">
+                <div className="form-group">
+                  <div className="input-wrapper">
+                    <span className="input-icon">👤</span>
+                    <input
+                      type="text"
+                      placeholder="Ditt namn (frivilligt)"
+                      value={messageAuthor}
+                      onChange={(e) => setMessageAuthor(e.target.value)}
+                      className="author-input"
+                      maxLength="30"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <div className="input-wrapper">
+                    <span className="input-icon">✏️</span>
+                    <textarea
+                      placeholder="Skriv ditt meddelande här..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      rows="3"
+                      className="message-input"
+                      maxLength="500"
+                      required
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={submitting || !newMessage.trim()}
+                  className="submit-btn"
+                >
+                  {submitting ? (
+                    <>
+                      <span className="btn-icon">⏳</span>
+                      Skickar...
+                    </>
+                  ) : (
+                    <>
+                      <span className="btn-icon">📤</span>
+                      Skicka Meddelande
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
 
           {/* Recent Messages */}
@@ -299,7 +296,7 @@ function App() {
         </div>
 
         <div className="description">
-          <h3>🎯 Docker Swarm Demo</h3>
+          <h3>Docker Swarm Webbapp</h3>
           <p>
             Denna React-app visar Docker Swarm load balancing genom att visa
             vilken server/container som servar innehållet. I en riktig Docker Swarm
@@ -309,7 +306,6 @@ function App() {
             <span className="tech-tag">React</span>
             <span className="tech-tag">Vite</span>
             <span className="tech-tag">Docker Swarm</span>
-            <span className="tech-tag">Nginx</span>
           </div>
         </div>
       </div>
