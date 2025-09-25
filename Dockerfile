@@ -19,11 +19,8 @@ COPY . .
 # Build React app with Vite
 RUN yarn build
 
-# Production stage with nginx and node
+# Production stage - Express server only
 FROM node:18-alpine AS production
-
-# Install nginx
-RUN apk add --no-cache nginx
 
 # Add labels for Watchtower
 LABEL com.centurylinklabs.watchtower.enable="true"
@@ -33,8 +30,8 @@ LABEL org.opencontainers.image.description="Docker Swarm React Frontend with Exp
 # Create app directory
 WORKDIR /app
 
-# Copy built React app to nginx html directory
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built React app to public directory
+COPY --from=builder /app/dist ./public
 
 # Copy backend files
 COPY app.js package.json yarn.lock ./
@@ -42,31 +39,14 @@ COPY app.js package.json yarn.lock ./
 # Install only production dependencies for backend
 RUN yarn install --production --frozen-lockfile
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
 # Create data directory for SQLite with proper permissions
 RUN mkdir -p /app/data && chown -R node:node /app/data
 
-# Create nginx and script directories
-RUN mkdir -p /docker-entrypoint.d /var/log/nginx /var/lib/nginx/tmp
+# Switch to node user for security
+USER node
 
-# Add hostname injection script
-RUN echo '#!/bin/sh' > /docker-entrypoint.d/inject-hostname.sh && \
-    echo 'echo "window.CONTAINER_HOSTNAME=\"$(hostname)\";" > /usr/share/nginx/html/hostname.js' >> /docker-entrypoint.d/inject-hostname.sh && \
-    chmod +x /docker-entrypoint.d/inject-hostname.sh
-
-# Create startup script
-RUN echo '#!/bin/sh' > /start.sh && \
-    echo 'echo "Starting Express backend..."' >> /start.sh && \
-    echo 'cd /app && node app.js &' >> /start.sh && \
-    echo 'echo "Starting Nginx..."' >> /start.sh && \
-    echo '/docker-entrypoint.d/inject-hostname.sh' >> /start.sh && \
-    echo 'nginx -g "daemon off;"' >> /start.sh && \
-    chmod +x /start.sh
-
-# Expose ports
+# Expose port 80
 EXPOSE 80
 
-# Start both services
-CMD ["/start.sh"]
+# Start Express server directly
+CMD ["node", "app.js"]

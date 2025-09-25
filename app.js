@@ -4,7 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 80;
 
 // Create data directory if it doesn't exist
 const dataDir = '/app/data';
@@ -53,6 +53,15 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   next();
+});
+
+// Serve static files from public directory (built React app)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Inject hostname for frontend
+app.get('/hostname.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.send(`window.CONTAINER_HOSTNAME="${os.hostname()}";`);
 });
 
 // Track visits middleware
@@ -223,6 +232,11 @@ app.get('/', (req, res) => {
     </body>
     </html>
   `);
+});
+
+// Catch-all handler: send back React's index.html file for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(port, '0.0.0.0', () => {
