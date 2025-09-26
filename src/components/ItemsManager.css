@@ -14,6 +14,7 @@
 }
 
 .error {
+
   background-color: rgba(248, 215, 218, 0.2);
   color: #ff6b6b;
   padding: 12px;
@@ -91,69 +92,41 @@
 }
 
 .item-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 15px;
   padding: 20px;
   margin-bottom: 15px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
 }
 
-.item-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.message-header strong {
+.item-display h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
   color: #fff;
   font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  flex-grow: 1;
 }
 
-.message-meta {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.processed-by {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.8rem;
-}
-
-.message-content {
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 15px;
+.item-display p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 10px;
   line-height: 1.5;
-  font-size: 0.95rem;
-  padding: 8px 0;
+}
+
+.item-display small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
 }
 
 .item-actions {
   margin-top: 15px;
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+  gap: 10px;
 }
 
 .edit-btn {
-  background: linear-gradient(45deg, #4CAF50, #45a049);
-  color: white;
+  background: linear-gradient(45deg, #ffd700, #ffb347);
+  color: #333;
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
@@ -161,19 +134,15 @@
   font-size: 12px;
   font-weight: 500;
   transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-  background: linear-gradient(45deg, #45a049, #4CAF50);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
 }
 
 .delete-btn {
-  background: linear-gradient(45deg, #f44336, #d32f2f);
+  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -182,15 +151,11 @@
   font-size: 12px;
   font-weight: 500;
   transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .delete-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
-  background: linear-gradient(45deg, #d32f2f, #f44336);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
 }
 
 .edit-item-form {
@@ -275,14 +240,4 @@
 .cancel-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
-}
-
-.no-messages {
-  text-align: center;
-  padding: 30px 20px;
-  color: rgba(255, 255, 255, 0.6);
-  font-style: italic;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
 }

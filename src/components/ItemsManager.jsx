@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ItemsService from '../services/ItemsService'
+import './ItemsManager.css'
 
 function ItemsManager() {
   const [items, setItems] = useState([])

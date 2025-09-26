@@ -361,6 +361,7 @@ body {
 
 .message-heading {
   margin-top: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 
@@ -444,7 +445,6 @@ body {
 }
 
 .messages-list {
-  max-height: 400px;
   overflow-y: auto;
   border: 2px solid var(--border-color);
   border-radius: 12px;
