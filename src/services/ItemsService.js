@@ -3,16 +3,22 @@ let API_BASE_URL = null
 
 // Function to get API URL from backend configuration
 const getApiBaseUrl = async () => {
-    if (API_BASE_URL) return API_BASE_URL
+    if (API_BASE_URL) {
+        console.log('Using cached API base URL:', API_BASE_URL)
+        return API_BASE_URL
+    }
 
     try {
         // Get API config from backend (which reads from environment variables)
+        console.log('Fetching API config from /api/config...')
         const response = await fetch('/api/config')
         if (response.ok) {
             const config = await response.json()
             API_BASE_URL = config.apiGatewayUrl || config.apiBaseUrl
             console.log('Loaded API base URL from config:', API_BASE_URL)
             return API_BASE_URL
+        } else {
+            console.warn('Failed to fetch /api/config, status:', response.status)
         }
     } catch (error) {
         console.warn('Failed to fetch API config from backend:', error)
@@ -28,9 +34,16 @@ const getApiBaseUrl = async () => {
 class ItemsService {
     async getAllItems() {
         const baseUrl = await getApiBaseUrl()
-        const response = await fetch(`${baseUrl}/api/items`)
+        const fullUrl = `${baseUrl}/api/items`
+        console.log('Fetching items from:', fullUrl)
+
+        const response = await fetch(fullUrl)
+        console.log('Response status:', response.status)
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch items: ${response.status}`)
+            const errorText = await response.text()
+            console.error('Error response:', errorText)
+            throw new Error(`Failed to fetch items: ${response.status} - ${errorText}`)
         }
         return response.json()
     }
@@ -46,15 +59,22 @@ class ItemsService {
 
     async createItem(item) {
         const baseUrl = await getApiBaseUrl()
-        const response = await fetch(`${baseUrl}/api/items`, {
+        const fullUrl = `${baseUrl}/api/items`
+        console.log('Creating item at:', fullUrl, 'with data:', item)
+
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(item),
         })
+        console.log('Create response status:', response.status)
+
         if (!response.ok) {
-            throw new Error(`Failed to create item: ${response.status}`)
+            const errorText = await response.text()
+            console.error('Create error response:', errorText)
+            throw new Error(`Failed to create item: ${response.status} - ${errorText}`)
         }
         return response.json()
     }

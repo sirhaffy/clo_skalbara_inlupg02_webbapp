@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
+import ItemsManager from './components/ItemsManager'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -352,6 +353,16 @@ function App() {
             <span className="tech-tag">Vite</span>
             <span className="tech-tag">Docker Swarm</span>
           </div>
+        </div>
+
+        {/* AWS Lambda API Items Manager */}
+        <div className="aws-section">
+          <h3>AWS Lambda API Integration</h3>
+          <p>
+            Denna sektion visar integration med AWS Lambda API Gateway för CRUD-operationer
+            mot en DynamoDB-databas.
+          </p>
+          <ItemsManager />
         </div>
       </div>
     </div>

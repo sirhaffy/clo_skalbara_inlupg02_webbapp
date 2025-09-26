@@ -1,46 +1,65 @@
-/* Items Manager Styles */
+/* Items Manager Styles - Updated for dark theme */
 .items-manager {
   max-width: 800px;
   margin: 20px auto;
   padding: 20px;
+  color: white;
 }
 
 .loading {
   text-align: center;
   padding: 20px;
   font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: rgba(248, 215, 218, 0.2);
+  color: #ff6b6b;
   padding: 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid rgba(245, 198, 203, 0.3);
 }
 
 .create-item-form {
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.05);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 15px;
   margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .create-item-form h3 {
   margin-top: 0;
   margin-bottom: 15px;
-  color: #343a40;
+  color: #fff;
+  font-size: 1.2rem;
 }
 
 .create-item-form input,
 .create-item-form textarea {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   font-size: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.create-item-form input::placeholder,
+.create-item-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.create-item-form input:focus,
+.create-item-form textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 .create-item-form textarea {
@@ -49,47 +68,52 @@
 }
 
 .create-item-form button {
-  background-color: #007bff;
+  background: linear-gradient(45deg, #667eea, #764ba2);
   color: white;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .create-item-form button:hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .items-list h3 {
-  color: #343a40;
+  color: #fff;
   margin-bottom: 20px;
+  font-size: 1.2rem;
 }
 
 .item-card {
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
   padding: 20px;
   margin-bottom: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
 }
 
 .item-display h4 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #343a40;
+  color: #fff;
+  font-size: 1.1rem;
 }
 
 .item-display p {
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 10px;
   line-height: 1.5;
 }
 
 .item-display small {
-  color: #868e96;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
 }
 
@@ -100,47 +124,69 @@
 }
 
 .edit-btn {
-  background-color: #ffc107;
-  color: #212529;
+  background: linear-gradient(45deg, #ffd700, #ffb347);
+  color: #333;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .edit-btn:hover {
-  background-color: #e0a800;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
 }
 
 .edit-item-form {
-  border: 2px solid #007bff;
+  border: 2px solid #667eea;
   padding: 15px;
-  border-radius: 4px;
-  background: #f8f9ff;
+  border-radius: 12px;
+  background: rgba(102, 126, 234, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .edit-item-form input,
 .edit-item-form textarea {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.edit-item-form input::placeholder,
+.edit-item-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.edit-item-form input:focus,
+.edit-item-form textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 .form-actions {
@@ -149,27 +195,31 @@
 }
 
 .form-actions button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .form-actions button[type="submit"] {
-  background-color: #28a745;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
   color: white;
 }
 
 .form-actions button[type="submit"]:hover {
-  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
 }
 
 .form-actions button[type="button"] {
-  background-color: #6c757d;
+  background: linear-gradient(45deg, #6c757d, #5a6268);
   color: white;
 }
 
 .form-actions button[type="button"]:hover {
-  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
 }
