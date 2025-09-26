@@ -145,10 +145,6 @@ function App() {
     }
 
     fetchAllData()
-
-    // Auto-refresh var 3:e sekund för bättre meddelande-synkronisering
-    const interval = setInterval(fetchAllData, 3000)
-    return () => clearInterval(interval)
   }, [])
 
   const isProduction = serverInfo.environment === 'production'
@@ -165,12 +161,6 @@ function App() {
         </header>
 
         <div className="info-grid">
-          <div className="info-card">
-            <div className="card-icon">🖥️</div>
-            <h3>Server/Host</h3>
-            <p className="info-value">{serverInfo.hostname}</p>
-          </div>
-
           <div className="info-card">
             <div className="card-icon">📦</div>
             <h3>Container ID</h3>
@@ -208,6 +198,15 @@ function App() {
           </div>
         </div>
 
+        <div className="actions">
+          <button
+            className="refresh-btn"
+            onClick={() => Promise.all([fetchServerInfo(), fetchDbStats()])}
+          >
+            🔄 Uppdatera All Info
+          </button>
+        </div>
+
         <div className="load-section">
           <h2>⚖️ Load Distribution</h2>
           <p className="section-description">
@@ -242,10 +241,10 @@ function App() {
         {/* Database Statistics Section */}
         <div className="database-section">
           <h2>📊 Meddelanden</h2>
+          <p className="sync-info">Meddelanden hämtas från databasen (AWS DynamoDB).</p>
           <div className="message-section">
             <div className="message-section-header">
-              <h3>💬 Skicka Meddelande</h3>
-              <p className="sync-info">Meddelanden synkas i realtid mellan alla containers</p>
+              <h3 className="message-heading">💬 Skicka Meddelande</h3>
             </div>
             <div className="message-form-container">
               <form onSubmit={submitMessage} className="message-form">
@@ -297,18 +296,9 @@ function App() {
             </div>
           </div>
 
-          <div className="actions">
-            <button
-              className="refresh-btn"
-              onClick={() => Promise.all([fetchServerInfo(), fetchDbStats()])}
-            >
-              🔄 Uppdatera All Info
-            </button>
-          </div>
-
           {/* Recent Messages */}
           <div className="messages-display">
-            <h3>📝 Senaste Meddelanden</h3>
+            <h3 className="message-heading">📝 Alla Meddelanden</h3>
             <div className="messages-list">
               {dbStats.recentMessages.length === 0 ? (
                 <p className="no-messages">Inga meddelanden än. Var först att skriva!</p>

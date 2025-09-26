@@ -9,8 +9,8 @@ const port = process.env.PORT || 80;
 // Get API Gateway URL from multiple sources with fallback
 const getAPIGatewayURL = async () => {
   // 1. Environment variable (set by Docker/Ansible)
-  if (process.env.API_GATEWAY_URL && process.env.API_GATEWAY_URL !== 'https://your-api-gateway-url.amazonaws.com/prod') {
-    console.log('✅ Using API Gateway URL from environment:', process.env.API_GATEWAY_URL);
+  if (process.env.API_GATEWAY_URL) {
+    console.log('Using API Gateway URL from environment:', process.env.API_GATEWAY_URL);
     return process.env.API_GATEWAY_URL;
   }
 
@@ -20,27 +20,26 @@ const getAPIGatewayURL = async () => {
     const ssm = new AWS.SSM({ region: process.env.AWS_REGION || 'eu-north-1' });
     const result = await ssm.getParameter({ Name: '/app/api-gateway-url' }).promise();
     if (result.Parameter && result.Parameter.Value) {
-      console.log('✅ Using API Gateway URL from AWS SSM:', result.Parameter.Value);
+      console.log('Using API Gateway URL from AWS SSM:', result.Parameter.Value);
       return result.Parameter.Value;
     }
   } catch (error) {
-    console.log('⚠️  Could not fetch API Gateway URL from AWS SSM:', error.message);
+    console.log('Could not fetch API Gateway URL from AWS SSM:', error.message);
   }
 
-  // 3. Fallback to default/placeholder
-  console.log('⚠️  Using fallback API Gateway URL - API calls will fail');
-  return 'https://api-not-configured.example.com';
+  // 3. No fallback - fail fast if not configured
+  throw new Error('API Gateway URL not configured! Set API_GATEWAY_URL environment variable or configure AWS SSM parameter /app/api-gateway-url');
 };
 
 // Initialize API Gateway URL
-let API_GATEWAY_URL = process.env.API_GATEWAY_URL || 'https://your-api-gateway-url.amazonaws.com/prod';
+let API_GATEWAY_URL = null;
 
 // Try to get the real URL at startup
 getAPIGatewayURL().then(url => {
   API_GATEWAY_URL = url;
-  console.log(`🚀 Server ready with API Gateway URL: ${API_GATEWAY_URL}`);
+  console.log(`Server ready with API Gateway URL: ${API_GATEWAY_URL}`);
 }).catch(error => {
-  console.error('❌ Failed to determine API Gateway URL:', error);
+  console.error('Failed to determine API Gateway URL:', error);
 });
 
 console.log(`Starting server on port ${port}`);
@@ -66,6 +65,10 @@ app.get('/hostname.js', (req, res) => {
 
 // Helper function to call AWS API
 const callAPI = async (endpoint, method = 'GET', body = null) => {
+  if (!API_GATEWAY_URL) {
+    throw new Error('API Gateway URL not available - server not properly initialized');
+  }
+
   try {
     const url = `${API_GATEWAY_URL}${endpoint}`;
     const options = {
