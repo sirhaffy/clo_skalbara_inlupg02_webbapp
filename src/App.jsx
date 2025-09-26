@@ -11,6 +11,7 @@ function App() {
     nodeName: 'Laddar...',
     nodeId: 'Laddar...',
     serviceName: 'Laddar...',
+    taskSlot: 'Laddar...',
     timestamp: 'Laddar...',
     platform: 'Laddar...'
   })
@@ -34,6 +35,12 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned HTML instead of JSON - API endpoint not available')
+      }
+
       const data = await response.json()
 
       setServerInfo(prev => ({
@@ -43,6 +50,7 @@ function App() {
         nodeName: data.nodeName || 'Data saknas',
         nodeId: data.nodeId || 'Data saknas',
         serviceName: data.serviceName || 'Data saknas',
+        taskSlot: data.taskSlot || 'Data saknas',
         timestamp: new Date(data.timestamp).toLocaleString('sv-SE') || 'Data saknas',
         platform: data.platform || 'Data saknas'
       }))
@@ -60,6 +68,7 @@ function App() {
         nodeName: 'Data saknas (API-fel)',
         nodeId: 'Data saknas (API-fel)',
         serviceName: 'Data saknas (API-fel)',
+        taskSlot: 'Data saknas (API-fel)',
         timestamp: new Date().toLocaleString('sv-SE'),
         platform: 'browser'
       }))
@@ -72,6 +81,12 @@ function App() {
     try {
       const response = await fetch('/api/stats')
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned HTML instead of JSON - API endpoint not available')
+      }
 
       const data = await response.json()
       setDbStats({
@@ -181,32 +196,52 @@ function App() {
           </div>
 
           <div className="info-card">
+            <div className="card-icon">🎯</div>
+            <h3>Task Slot</h3>
+            <p className="info-value">{serverInfo.taskSlot}</p>
+          </div>
+
+          <div className="info-card">
             <div className="card-icon">🕒</div>
             <h3>Senaste Uppdatering</h3>
             <p className="info-value">{serverInfo.timestamp}</p>
           </div>
         </div>
 
-        {/* Database Statistics Section */}
-        <div className="database-section">
-          <h2>📊 Meddelanden</h2>
-
+        <div className="load-section">
+          <h2>⚖️ Load Distribution</h2>
+          <p className="section-description">
+            Visar fördelningen av HTTP-requests mellan olika containers i Docker Swarm clustret.
+            Varje container rapporterar sitt hostname och antal requests den har behandlat.
+          </p>
           <div className="db-stats-grid">
             <div className="stat-card">
-              <div className="stat-icon">⚖️</div>
-              <h4>Load Distribution</h4>
               <div className="container-stats">
-                {dbStats.containerStats.map((stat, index) => (
-                  <div key={index} className="container-stat">
-                    <span className="container-name">{stat.hostname}</span>
-                    <span className="request-count">{stat.request_count} requests</span>
+                {dbStats.containerStats.length === 0 ? (
+                  <div className="container-stat loading-stat">
+                    <span className="container-name">Laddar container-statistik...</span>
+                    <span className="request-count">⏳</span>
                   </div>
-                ))}
+                ) : (
+                  dbStats.containerStats.map((stat, index) => (
+                    <div key={index} className="container-stat">
+                      <span className="container-name" title={stat.hostname}>
+                        {stat.hostname}
+                      </span>
+                      <span className="request-count">
+                        {stat.request_count} requests
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Message System */}
+        {/* Database Statistics Section */}
+        <div className="database-section">
+          <h2>📊 Meddelanden</h2>
           <div className="message-section">
             <div className="message-section-header">
               <h3>💬 Skicka Meddelande</h3>
