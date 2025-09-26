@@ -141,6 +141,18 @@ app.get('/api/server-info', (req, res) => {
   res.json(serverInfo);
 });
 
+// Configuration endpoint for frontend to get API Gateway URL
+app.get('/api/config', (req, res) => {
+  const config = {
+    apiGatewayUrl: API_GATEWAY_URL,
+    apiBaseUrl: API_GATEWAY_URL, // Alternative name for compatibility
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.npm_package_version || '1.0.0'
+  };
+
+  res.json(config);
+});
+
 // Stats endpoint that combines local container stats with AWS API data
 app.get('/api/stats', async (req, res) => {
   try {
