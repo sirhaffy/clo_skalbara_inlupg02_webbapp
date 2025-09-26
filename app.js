@@ -245,106 +245,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Database endpoints
-app.get('/api/stats', (req, res) => {
-  const hostname = os.hostname();
-
-  Promise.all([
-    // Total visits
-    new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as total FROM visits', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.total);
-      });
-    }),
-
-    // Visits by container
-    new Promise((resolve, reject) => {
-      db.all('SELECT hostname, COUNT(*) as count FROM visits GROUP BY hostname ORDER BY count DESC', (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    }),
-
-    // Recent messages
-    new Promise((resolve, reject) => {
-      db.all('SELECT * FROM messages ORDER BY timestamp DESC LIMIT 10', (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    }),
-
-    // Container request stats
-    new Promise((resolve, reject) => {
-      db.all('SELECT * FROM container_stats ORDER BY request_count DESC', (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    })
-  ])
-    .then(([totalVisits, visitsByContainer, recentMessages, containerStats]) => {
-      res.json({
-        current_container: hostname,
-        total_visits: totalVisits,
-        visits_by_container: visitsByContainer,
-        recent_messages: recentMessages,
-        container_stats: containerStats,
-        timestamp: new Date().toISOString()
-      });
-    })
-    .catch(err => {
-      console.error('Database error:', err);
-      res.status(500).json({ error: 'Database error', message: err.message });
-    });
-});
-
-// Add message endpoint
-app.post('/api/messages', (req, res) => {
-  const { message, author = 'Anonymous' } = req.body;
-  const hostname = os.hostname();
-  const containerId = process.env.HOSTNAME || 'unknown';
-
-  if (!message || message.trim().length === 0) {
-    return res.status(400).json({ error: 'Message cannot be empty' });
-  }
-
-  db.run(
-    'INSERT INTO messages (message, author, hostname, container_id) VALUES (?, ?, ?, ?)',
-    [message.trim(), author.trim(), hostname, containerId],
-    function (err) {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ error: 'Database error', message: err.message });
-      }
-
-      res.json({
-        success: true,
-        message_id: this.lastID,
-        processed_by: hostname,
-        timestamp: new Date().toISOString()
-      });
-    }
-  );
-});
-
-// Get messages endpoint
-app.get('/api/messages', (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 20, 100);
-
-  db.all('SELECT * FROM messages ORDER BY timestamp DESC LIMIT ?', [limit], (err, rows) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Database error', message: err.message });
-    }
-
-    res.json({
-      messages: rows,
-      current_container: os.hostname(),
-      timestamp: new Date().toISOString()
-    });
-  });
-});
-
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -368,30 +268,16 @@ app.get('*', (req, res) => {
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`App running on port ${port}`);
-  console.log(`Database: ${dbPath}`);
+  console.log(`API Gateway URL: ${API_GATEWAY_URL}`);
 });
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('Received SIGINT, closing database...');
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database closed.');
-    }
-    process.exit(0);
-  });
+  console.log('Received SIGINT, shutting down gracefully...');
+  process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, closing database...');
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database closed.');
-    }
-    process.exit(0);
-  });
+  console.log('Received SIGTERM, shutting down gracefully...');
+  process.exit(0);
 });
