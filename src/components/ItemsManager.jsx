@@ -62,56 +62,84 @@ function ItemsManager() {
     }
   }
 
-  if (loading) return <div className="loading">Loading items...</div>
+  if (loading) return <div className="loading">⏳ Loading items...</div>
 
   return (
     <div className="items-manager">
-      <h2>Items Manager</h2>
-
       {error && <div className="error">{error}</div>}
 
-      {/* Create new item form */}
-      <form onSubmit={handleCreateItem} className="create-item-form">
-        <h3>Add New Item</h3>
-        <input
-          type="text"
-          placeholder="Item name"
-          value={newItem.name}
-          onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-          required
-        />
-        <textarea
-          placeholder="Item description"
-          value={newItem.description}
-          onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-        />
-        <button type="submit">Create Item</button>
-      </form>
-
-      {/* Items list */}
-      <div className="items-list">
-        <h3>Items ({items.length})</h3>
-        {items.length === 0 ? (
-          <p>No items found. Create your first item above!</p>
-        ) : (
-          items.map(item => (
-            <div key={item.id} className="item-card">
-              {editingItem === item.id ? (
-                <EditItemForm
-                  item={item}
-                  onSave={(updatedItem) => handleUpdateItem(item.id, updatedItem)}
-                  onCancel={() => setEditingItem(null)}
+      {/* Create new item form - styled like message form */}
+      <div className="message-section">
+        <div className="message-section-header">
+          <h3 className="message-heading">➕ Add New Item</h3>
+        </div>
+        <div className="message-form-container">
+          <form onSubmit={handleCreateItem} className="message-form">
+            <div className="form-group">
+              <div className="input-wrapper">
+                <span className="input-icon">🏷️</span>
+                <input
+                  type="text"
+                  placeholder="Item name"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  className="author-input"
+                  maxLength="100"
+                  required
                 />
-              ) : (
-                <ItemDisplay
-                  item={item}
-                  onEdit={() => setEditingItem(item.id)}
-                  onDelete={() => handleDeleteItem(item.id)}
-                />
-              )}
+              </div>
             </div>
-          ))
-        )}
+            <div className="form-group">
+              <div className="input-wrapper">
+                <span className="input-icon">📝</span>
+                <textarea
+                  placeholder="Item description"
+                  value={newItem.description}
+                  onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                  rows="3"
+                  className="message-input"
+                  maxLength="500"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={!newItem.name.trim()}
+              className="submit-btn"
+            >
+              <span className="btn-icon">✨</span>
+              Create Item
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Items list - styled like messages display */}
+      <div className="messages-display">
+        <h3 className="message-heading">📦 All Items ({items.length})</h3>
+        <div className="messages-list">
+          {items.length === 0 ? (
+            <p className="no-messages">No items found. Create your first item above!</p>
+          ) : (
+            items.map(item => (
+              <div key={item.id} className="message-item">
+                {editingItem === item.id ? (
+                  <EditItemForm
+                    item={item}
+                    onSave={(updatedItem) => handleUpdateItem(item.id, updatedItem)}
+                    onCancel={() => setEditingItem(null)}
+                  />
+                ) : (
+                  <ItemDisplay
+                    item={item}
+                    onEdit={() => setEditingItem(item.id)}
+                    onDelete={() => handleDeleteItem(item.id)}
+                  />
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
@@ -119,18 +147,24 @@ function ItemsManager() {
 
 function ItemDisplay({ item, onEdit, onDelete }) {
   return (
-    <div className="item-display">
-      <h4>{item.name}</h4>
-      <p>{item.description}</p>
-      <small>
-        Created: {new Date(item.createdAt).toLocaleString()} |
-        Updated: {new Date(item.updatedAt).toLocaleString()}
-      </small>
-      <div className="item-actions">
-        <button onClick={onEdit} className="edit-btn">Edit</button>
-        <button onClick={onDelete} className="delete-btn">Delete</button>
+    <>
+      <div className="message-header">
+        <strong>{item.name}</strong>
+        <span className="message-meta">
+          {new Date(item.createdAt).toLocaleString('sv-SE')}
+          {item.updatedAt !== item.createdAt && (
+            <span className="processed-by"> (updated: {new Date(item.updatedAt).toLocaleString('sv-SE')})</span>
+          )}
+        </span>
       </div>
-    </div>
+
+      <p className="message-content">{item.description || 'No description provided'}</p>
+
+      <div className="item-actions">
+        <button onClick={onEdit} className="edit-btn">✏️ Edit</button>
+        <button onClick={onDelete} className="delete-btn">🗑️ Delete</button>
+      </div>
+    </>
   )
 }
 
@@ -147,19 +181,40 @@ function EditItemForm({ item, onSave, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="edit-item-form">
-      <input
-        type="text"
-        value={editedItem.name}
-        onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
-        required
-      />
-      <textarea
-        value={editedItem.description}
-        onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
-      />
+      <div className="form-group">
+        <div className="input-wrapper">
+          <span className="input-icon">🏷️</span>
+          <input
+            type="text"
+            value={editedItem.name}
+            onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
+            className="author-input"
+            placeholder="Item name"
+            required
+          />
+        </div>
+      </div>
+      <div className="form-group">
+        <div className="input-wrapper">
+          <span className="input-icon">📝</span>
+          <textarea
+            value={editedItem.description}
+            onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+            className="message-input"
+            placeholder="Item description"
+            rows="3"
+          />
+        </div>
+      </div>
       <div className="form-actions">
-        <button type="submit">Save</button>
-        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="submit" className="submit-btn">
+          <span className="btn-icon">💾</span>
+          Save
+        </button>
+        <button type="button" onClick={onCancel} className="cancel-btn">
+          <span className="btn-icon">❌</span>
+          Cancel
+        </button>
       </div>
     </form>
   )

@@ -19,13 +19,8 @@ function App() {
 
   const [dbStats, setDbStats] = useState({
     visitsByContainer: [],
-    recentMessages: [],
     containerStats: []
   })
-
-  const [newMessage, setNewMessage] = useState('')
-  const [messageAuthor, setMessageAuthor] = useState('')
-  const [submitting, setSubmitting] = useState(false)
 
   const fetchServerInfo = async () => {
     try {
@@ -92,48 +87,10 @@ function App() {
       const data = await response.json()
       setDbStats({
         visitsByContainer: data.visits_by_container || [],
-        recentMessages: data.recent_messages || [],
         containerStats: data.container_stats || []
       })
     } catch (err) {
       console.error('Error fetching database stats:', err)
-    }
-  }
-
-  const submitMessage = async (e) => {
-    e.preventDefault()
-    if (!newMessage.trim()) return
-
-    setSubmitting(true)
-    try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: newMessage.trim(),
-          author: messageAuthor.trim() || 'Anonymous'
-        })
-      })
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-
-      const result = await response.json()
-      console.log('Message submitted:', result)
-
-      // Clear form
-      setNewMessage('')
-      setMessageAuthor('')
-
-      // Refresh stats
-      await fetchDbStats()
-
-    } catch (err) {
-      console.error('Error submitting message:', err)
-      setError('Failed to submit message: ' + err.message)
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -239,106 +196,11 @@ function App() {
           </div>
         </div>
 
-        {/* Database Statistics Section */}
+        {/* AWS Lambda API Section */}
         <div className="database-section">
-          <h2>📊 Meddelanden</h2>
-          <p className="sync-info">Meddelanden hämtas från databasen (AWS DynamoDB).</p>
-          <div className="message-section">
-            <div className="message-section-header">
-              <h3 className="message-heading">💬 Skicka Meddelande</h3>
-            </div>
-            <div className="message-form-container">
-              <form onSubmit={submitMessage} className="message-form">
-                <div className="form-group">
-                  <div className="input-wrapper">
-                    <span className="input-icon">👤</span>
-                    <input
-                      type="text"
-                      placeholder="Ditt namn (frivilligt)"
-                      value={messageAuthor}
-                      onChange={(e) => setMessageAuthor(e.target.value)}
-                      className="author-input"
-                      maxLength="30"
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <div className="input-wrapper">
-                    <span className="input-icon">✏️</span>
-                    <textarea
-                      placeholder="Skriv ditt meddelande här..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      rows="3"
-                      className="message-input"
-                      maxLength="500"
-                      required
-                    />
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting || !newMessage.trim()}
-                  className="submit-btn"
-                >
-                  {submitting ? (
-                    <>
-                      <span className="btn-icon">⏳</span>
-                      Skickar...
-                    </>
-                  ) : (
-                    <>
-                      <span className="btn-icon">📤</span>
-                      Skicka Meddelande
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Recent Messages */}
-          <div className="messages-display">
-            <h3 className="message-heading">📝 Alla Meddelanden</h3>
-            <div className="messages-list">
-              {dbStats.recentMessages.length === 0 ? (
-                <p className="no-messages">Inga meddelanden än. Var först att skriva!</p>
-              ) : (
-                dbStats.recentMessages.map((msg, index) => (
-                  <div key={msg.id || index} className="message-item">
-
-                    <div className="message-header">
-                      <strong>{msg.author}</strong>
-                      <span className="message-meta">
-                        {new Date(msg.timestamp).toLocaleString('sv-SE')}
-                        <span className="processed-by"> via {msg.hostname}</span>
-                      </span>
-                    </div>
-
-                    <p className="message-content">{msg.message}</p>
-
-                    <button
-                      className="delete-btn"
-                      onClick={async () => {
-                        if (!window.confirm('Are you sure you want to delete this message?')) return
-                        try {
-                          const response = await fetch(`/api/messages/${msg.id}`, {
-                            method: 'DELETE'
-                          })
-                          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-                          await fetchDbStats()
-                        } catch (err) {
-                          setError('Failed to delete message: ' + err.message)
-                        }
-                      }}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          <h2>� AWS Lambda API Integration</h2>
+          <p className="sync-info">CRUD-operationer mot AWS Lambda API Gateway och DynamoDB-databas.</p>
+          <ItemsManager />
         </div>
 
         <div className="description">
@@ -355,15 +217,6 @@ function App() {
           </div>
         </div>
 
-        {/* AWS Lambda API Items Manager */}
-        <div className="aws-section">
-          <h3>AWS Lambda API Integration</h3>
-          <p>
-            Denna sektion visar integration med AWS Lambda API Gateway för CRUD-operationer
-            mot en DynamoDB-databas.
-          </p>
-          <ItemsManager />
-        </div>
       </div>
     </div>
   )
