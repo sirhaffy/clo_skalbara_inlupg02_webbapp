@@ -2,10 +2,10 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths-ignore:
-      - 'README.md'
-      - 'docs/**'
+      - "README.md"
+      - "docs/**"
 
 env:
   DOCKER_IMAGE: haffy/clo-fresva-app
@@ -17,65 +17,176 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Get version info
-      id: version
-      run: |
-        # Create version from git commit
-        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-        VERSION="${{ github.ref_name }}-${SHORT_SHA}"
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+      - name: Get version info
+        id: version
+        run: |
+          # Create version from git commit
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          VERSION="${{ github.ref_name }}-${SHORT_SHA}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: |
-          ${{ env.DOCKER_IMAGE }}:latest
-          ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}
-        labels: |
-          org.opencontainers.image.title=CLO FreSva React App
-          org.opencontainers.image.description=Docker Swarm React Frontend
-          org.opencontainers.image.version=${{ steps.version.outputs.version }}
-          org.opencontainers.image.revision=${{ github.sha }}
-          org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-          com.centurylinklabs.watchtower.enable=true
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}
+          labels: |
+            org.opencontainers.image.title=CLO FreSva React App
+            org.opencontainers.image.description=Docker Swarm React Frontend
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Update Parameter Store with new version
-      run: |
-        aws ssm put-parameter \
-          --name "/clofresva_skalbara_upg02/app/docker_image_version" \
-          --value "${{ steps.version.outputs.version }}" \
-          --type "String" \
-          --overwrite
+      - name: Update Parameter Store with new version
+        run: |
+          aws ssm put-parameter \
+            --name "/clofresva_skalbara_upg02/app/docker_image_version" \
+            --value "${{ steps.version.outputs.version }}" \
+            --type "String" \
+            --overwrite
 
-    - name: Deployment summary
-      run: |
-        echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-        echo "- **Image:** ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Watchtower:** Will auto-update containers within 5 minutes" >> $GITHUB_STEP_SUMMARY
-        echo "- **Frontend:** React app served via Nginx" >> $GITHUB_STEP_SUMMARY
+      - name: Get deployment configuration from SSM
+        id: deployment-config
+        run: |
+          # Get deployment configuration from SSM Parameter Store
+          SWARM_MANAGER_IP=$(aws ssm get-parameter --name "/app/swarm-manager-ip" --query "Parameter.Value" --output text)
+          BASTION_IP=$(aws ssm get-parameter --name "/app/bastion-ip" --query "Parameter.Value" --output text)
+          SERVICE_NAME=$(aws ssm get-parameter --name "/app/docker-service-name" --query "Parameter.Value" --output text)
+
+          echo "swarm_manager_ip=${SWARM_MANAGER_IP}" >> $GITHUB_OUTPUT
+          echo "bastion_ip=${BASTION_IP}" >> $GITHUB_OUTPUT
+          echo "service_name=${SERVICE_NAME}" >> $GITHUB_OUTPUT
+
+          echo "Retrieved configuration:"
+          echo "- Bastion IP: ${BASTION_IP}"
+          echo "- Swarm Manager IP: ${SWARM_MANAGER_IP}"
+          echo "- Service Name: ${SERVICE_NAME}"
+
+      - name: Setup SSH key for deployment
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/clo_ec2_001
+          chmod 600 ~/.ssh/clo_ec2_001
+
+          # Create SSH config for bastion proxy
+          cat > ~/.ssh/config << EOF
+          Host bastion
+              HostName ${{ steps.deployment-config.outputs.bastion_ip }}
+              User ec2-user
+              IdentityFile ~/.ssh/clo_ec2_001
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+
+          Host swarm-manager
+              HostName ${{ steps.deployment-config.outputs.swarm_manager_ip }}
+              User ec2-user
+              IdentityFile ~/.ssh/clo_ec2_001
+              ProxyJump bastion
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy to Docker Swarm
+        run: |
+          SERVICE_NAME="${{ steps.deployment-config.outputs.service_name }}"
+          NEW_IMAGE="${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}"
+
+          echo "Deploying ${NEW_IMAGE} to service ${SERVICE_NAME}..."
+
+          # Update the Docker Swarm service with new image
+          ssh swarm-manager "
+            echo 'Current service status:'
+            docker service ls --filter name=${SERVICE_NAME}
+
+            echo 'Updating service with new image...'
+            docker service update --image ${NEW_IMAGE} ${SERVICE_NAME}
+
+            echo 'Waiting for service update to complete...'
+            sleep 10
+
+            echo 'Updated service status:'
+            docker service ls --filter name=${SERVICE_NAME}
+
+            echo 'Service tasks status:'
+            docker service ps ${SERVICE_NAME} --no-trunc
+          "
+
+      - name: Verify deployment
+        run: |
+          SERVICE_NAME="${{ steps.deployment-config.outputs.service_name }}"
+
+          echo "Verifying deployment..."
+          ssh swarm-manager "
+            # Wait a bit more for tasks to stabilize
+            sleep 15
+
+            echo 'Final service verification:'
+            docker service ls --filter name=${SERVICE_NAME}
+
+            echo 'Running tasks:'
+            docker service ps ${SERVICE_NAME} --filter desired-state=running --no-trunc
+
+            # Check if all replicas are running
+            RUNNING_REPLICAS=\$(docker service ls --filter name=${SERVICE_NAME} --format '{{.Replicas}}' | cut -d'/' -f1)
+            TARGET_REPLICAS=\$(docker service ls --filter name=${SERVICE_NAME} --format '{{.Replicas}}' | cut -d'/' -f2)
+
+            echo \"Running replicas: \${RUNNING_REPLICAS}/\${TARGET_REPLICAS}\"
+
+            if [ \"\${RUNNING_REPLICAS}\" = \"\${TARGET_REPLICAS}\" ]; then
+              echo 'Deployment successful - all replicas running'
+              exit 0
+            else
+              echo 'Deployment may have issues - not all replicas running'
+              exit 1
+            fi
+          "
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service:** ${{ steps.deployment-config.outputs.service_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Method:** Direct Docker Swarm service update" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend:** React app served via Nginx" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Infrastructure Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bastion Host:** ${{ steps.deployment-config.outputs.bastion_ip }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Swarm Manager:** ${{ steps.deployment-config.outputs.swarm_manager_ip }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Manual Access Commands" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# SSH to Swarm Manager (via bastion)" >> $GITHUB_STEP_SUMMARY
+          echo "ssh -i ~/.ssh/clo_ec2_001.pem -o ProxyJump=ec2-user@${{ steps.deployment-config.outputs.bastion_ip }} ec2-user@${{ steps.deployment-config.outputs.swarm_manager_ip }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Check service status" >> $GITHUB_STEP_SUMMARY
+          echo "docker service ls" >> $GITHUB_STEP_SUMMARY
+          echo "docker service ps ${{ steps.deployment-config.outputs.service_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

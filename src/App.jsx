@@ -111,7 +111,7 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <h1>🐳 Docker Swarm - Webbapp v2.1.3</h1>
+          <h1>🐳 Docker Swarm - Webbapp v2.1.4</h1>
           <div className={`status-badge ${isProduction ? 'production' : 'development'}`}>
             {isProduction ? '🚀 Production - Rolling Updates Active!' : '🔧 Development'}
           </div>
