@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLO FreSva - Docker Swarm App</title>
   <style>
-    /* Loading screen som visas innan React laddar */
+
+    /* Loading screen shows before React is ready */
     #loading-screen {
       position: fixed;
       top: 0;
@@ -44,7 +45,6 @@
   </style>
 </head>
 <body>
-  <!-- Loading screen som döljs när React är redo -->
   <div id="loading-screen">
     <div class="spinner"></div>
     <div class="loading-text">🐳 Laddar Docker Swarm App...</div>
@@ -54,7 +54,6 @@
   <script type="module" src="/src/main.jsx"></script>
 
   <script>
-    // Dölj loading screen när React är redo
     window.addEventListener('load', () => {
       setTimeout(() => {
         const loadingScreen = document.getElementById('loading-screen');

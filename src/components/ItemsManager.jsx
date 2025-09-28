@@ -69,7 +69,33 @@ function ItemsManager() {
     <div className="items-manager">
       {error && <div className="error">{error}</div>}
 
-      {/* Create new item form - styled like message form */}
+      <div className="messages-display">
+        <h3 className="message-heading">📦 All Items ({items.length})</h3>
+        <div className="messages-list">
+          {items.length === 0 ? (
+            <p className="no-messages">No items found. Create your first item above!</p>
+          ) : (
+            items.map(item => (
+              <div key={item.id} className="message-item">
+                {editingItem === item.id ? (
+                  <EditItemForm
+                    item={item}
+                    onSave={(updatedItem) => handleUpdateItem(item.id, updatedItem)}
+                    onCancel={() => setEditingItem(null)}
+                  />
+                ) : (
+                  <ItemDisplay
+                    item={item}
+                    onEdit={() => setEditingItem(item.id)}
+                    onDelete={() => handleDeleteItem(item.id)}
+                  />
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       <div className="message-section">
         <div className="message-section-header">
           <h3 className="message-heading">➕ Add New Item</h3>
@@ -115,33 +141,6 @@ function ItemsManager() {
         </div>
       </div>
 
-      {/* Items list - styled like messages display */}
-      <div className="messages-display">
-        <h3 className="message-heading">📦 All Items ({items.length})</h3>
-        <div className="messages-list">
-          {items.length === 0 ? (
-            <p className="no-messages">No items found. Create your first item above!</p>
-          ) : (
-            items.map(item => (
-              <div key={item.id} className="message-item">
-                {editingItem === item.id ? (
-                  <EditItemForm
-                    item={item}
-                    onSave={(updatedItem) => handleUpdateItem(item.id, updatedItem)}
-                    onCancel={() => setEditingItem(null)}
-                  />
-                ) : (
-                  <ItemDisplay
-                    item={item}
-                    onEdit={() => setEditingItem(item.id)}
-                    onDelete={() => handleDeleteItem(item.id)}
-                  />
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   )
 }

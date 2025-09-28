@@ -50,6 +50,9 @@ RUN yarn install --production --frozen-lockfile
 # Create data directory for SQLite with proper permissions
 RUN mkdir -p /app/data && chown -R node:node /app/data
 
+# Set production environment
+ENV NODE_ENV=production
+
 # Switch to node user for security
 USER node
 

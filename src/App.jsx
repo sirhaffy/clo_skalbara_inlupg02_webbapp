@@ -14,7 +14,8 @@ function App() {
     serviceName: 'Laddar...',
     taskSlot: 'Laddar...',
     timestamp: 'Laddar...',
-    platform: 'Laddar...'
+    platform: 'Laddar...',
+    environment: 'development'
   })
 
   const [dbStats, setDbStats] = useState({
@@ -48,7 +49,8 @@ function App() {
         serviceName: data.serviceName || 'Data saknas',
         taskSlot: data.taskSlot || 'Data saknas',
         timestamp: new Date(data.timestamp).toLocaleString('sv-SE') || 'Data saknas',
-        platform: data.platform || 'Data saknas'
+        platform: data.platform || 'Data saknas',
+        environment: data.environment || 'development'
       }))
 
       setLoading(false)
@@ -56,7 +58,7 @@ function App() {
       console.error('Error fetching server info:', err)
       setError(err.message)
 
-      // Fallback till lokala värden om API misslyckas
+      // Fallback values if API fails
       setServerInfo(prev => ({
         hostname: window.location.hostname || 'localhost',
         containerId: 'Data saknas (API-fel)',
@@ -66,7 +68,8 @@ function App() {
         serviceName: 'Data saknas (API-fel)',
         taskSlot: 'Data saknas (API-fel)',
         timestamp: new Date().toLocaleString('sv-SE'),
-        platform: 'browser'
+        platform: 'browser',
+        environment: 'development'
       }))
 
       setLoading(false)

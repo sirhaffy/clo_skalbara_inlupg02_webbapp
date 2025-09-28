@@ -1,7 +1,5 @@
-// API Gateway URL - fetched from backend config endpoint
 let API_BASE_URL = null
 
-// Function to get API URL from backend configuration
 const getApiBaseUrl = async () => {
     if (API_BASE_URL) {
         console.log('Using cached API base URL:', API_BASE_URL)
@@ -9,7 +7,7 @@ const getApiBaseUrl = async () => {
     }
 
     try {
-        // Get API config from backend (which reads from environment variables)
+        // Get API config from backend (reads from environment variables)
         console.log('Fetching API config from /api/config...')
         const response = await fetch('/api/config')
         if (response.ok) {
@@ -24,7 +22,7 @@ const getApiBaseUrl = async () => {
         console.warn('Failed to fetch API config from backend:', error)
     }
 
-    // Fallback to hardcoded URL (should be avoided in production)
+    // Fallback to hardcoded URL if all else fails
     API_BASE_URL = 'https://vnnab4xh11.execute-api.eu-north-1.amazonaws.com/prod'
     console.warn('Using fallback API URL:', API_BASE_URL)
 
